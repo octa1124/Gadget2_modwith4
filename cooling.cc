@@ -9,26 +9,16 @@
  *  \brief Module for gas radiative cooling
  */
 
-#include "gadgetconfig.h"
-
-#ifdef COOLING
-
-#include <gsl/gsl_math.h>
-#include <math.h>
-#include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
+#include <mpi.h>
+#include <gsl/gsl_math.h>
+#include "allvars.h"
+#include "proto.h"
 #include <algorithm>
-
-#include "../cooling_sfr/cooling.h"
-#include "../data/allvars.h"
-#include "../data/dtypes.h"
-#include "../data/mymalloc.h"
-#include "../logs/logs.h"
-#include "../logs/timer.h"
-#include "../system/system.h"
-#include "../time_integration/timestep.h"
+#include "cooling.h"
 
 /** \brief Compute the new internal energy per unit mass.
  *
@@ -128,6 +118,11 @@ double coolsfr::DoCooling(double u_old, double rho, double dt, double *ne_guess,
   u *= All.UnitDensity_in_cgs / All.UnitPressure_in_cgs; /* to internal units */
 
   return u;
+}
+
+void coolsfr_init(coolsfr *self, MPI_Comm comm)
+{
+  self->base.comm = comm;
 }
 
 /** \brief Return the cooling time.
@@ -741,4 +736,3 @@ void coolsfr::cool_sph_particle(simparticles *Sp, int i, gas_state *gs, do_cool_
   Sp->SphP[i].set_thermodynamic_variables();
 }
 
-#endif
