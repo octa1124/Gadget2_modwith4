@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 #include "allvars.h"
+#include "cooling.h"
 #include "proto.h"
 
 
@@ -37,6 +38,7 @@ void endrun(int ierr)
 #endif
       exit(0);
     }
+    free(*RateT);
 
   MPI_Finalize();
   exit(0);

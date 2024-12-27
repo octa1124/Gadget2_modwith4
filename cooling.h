@@ -26,21 +26,37 @@ typedef struct setcomm
   MPI_Comm comm;
 } setcomm;
 
-typedef struct coolsfr
+// typedef struct coolsfr
+// {
+//   setcomm base;
+
+//   double Tmin;             /**< min temperature in log10 */
+//   double Tmax;             /**< max temperature in log10 */
+//   double deltaT;           /**< log10 of temperature spacing in the interpolation tables */
+//   int NheattabUVB;         /**< length of UVB photo table */
+//   rate_table *RateT;       /**< tabulated rates */
+//   photo_table *PhotoTUVB;  /**< photo-ionization/heating rate table for UV background */
+//   photo_current pc;        /**< current interpolated photo rates */
+//   do_cool_data DoCoolData; /**< cooling data */
+
+// } coolsfr;
+
+struct coolsfr
 {
-  setcomm base;
+  struct gas_state GasState;      /**< gas state */
+  struct do_cool_data DoCoolData; /**< cooling data */
 
-  double Tmin;             /**< min temperature in log10 */
-  double Tmax;             /**< max temperature in log10 */
-  double deltaT;           /**< log10 of temperature spacing in the interpolation tables */
-  int NheattabUVB;         /**< length of UVB photo table */
-  rate_table *RateT;       /**< tabulated rates */
-  photo_table *PhotoTUVB;  /**< photo-ionization/heating rate table for UV background */
-  photo_current pc;        /**< current interpolated photo rates */
-  do_cool_data DoCoolData; /**< cooling data */
+  struct rate_table *RateT;      /**< tabulated rates */
+  struct photo_table *PhotoTUVB; /**< photo-ionization/heating rate table for UV background*/
+  struct photo_current pc;       /**< current interpolated photo rates */
 
-} coolsfr;
+  double Tmin;     /**< min temperature in log10 */
+  double Tmax;     /**< max temperature in log10 */
+  double deltaT;   /**< log10 of temperature spacing in the interpolation tables */
+  int NheattabUVB; /**< length of UVB photo table */
+};
 
+struct coolsfr cs;
 
 void coolsfr_init(coolsfr *self, MPI_Comm comm);
 double AbundanceRatios(double u, double rho, double *ne_guess, double *nH0_pointer, double *nHeII_pointer);
@@ -115,7 +131,7 @@ int NheattabUVB;   /**< length of UVB photo table */
 
 double DoCooling(double u_old, double rho, double dt, double *ne_guess, gas_state *gs, do_cool_data *DoCool);
 double GetCoolingTime(double u_old, double rho, double *ne_guess, gas_state *gs, do_cool_data *DoCool);
-void cool_sph_particle(simparticles *Sp, int i, gas_state *gs, do_cool_data *DoCool);
+// void cool_sph_particle(simparticles *Sp, int i, gas_state *gs, do_cool_data *DoCool);
 
 void SetZeroIonization(void);
 

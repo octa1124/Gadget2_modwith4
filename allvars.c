@@ -8,6 +8,8 @@
 #include "allvars.h"
 
 
+
+
 int ThisTask;		/*!< the rank of the local processor */
 int NTask;               /*!< number of processors */
 int PTask;	        /*!< smallest integer such that NTask <= 2^PTask */
