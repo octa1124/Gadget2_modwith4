@@ -648,6 +648,9 @@ void IonizeParams(void) { IonizeParamsUVB(); }
  */
 void InitCool(void)
 {
+  MPI_Comm comm = MPI_COMM_WORLD;
+  coolsfr_init(*cs, MPI_Comm comm)
+
   /* set default hydrogen mass fraction */
   GasState.XH = HYDROGEN_MASSFRAC;
 
@@ -655,7 +658,8 @@ void InitCool(void)
   SetZeroIonization();
 
   /* allocate and construct rate table */
-  RateT = (rate_table *)Mem.mymalloc("RateT", (NCOOLTAB + 1) * sizeof(rate_table));
+  // RateT = (rate_table *)Mem.mymalloc("RateT", (NCOOLTAB + 1) * sizeof(rate_table));
+  cs->RateT = (struct rate_table *)Mem.mymalloc("RateT", (NCOOLTAB + 1) * sizeof(struct rate_table));
   ;
   MakeRateTable();
 

@@ -89,7 +89,7 @@ struct gas_state
 };
 
 /* tabulated rates */
-struct rate_table
+typedef struct rate_table
 {
   double BetaH0, BetaHep, Betaff;
   double AlphaHp, AlphaHep, Alphad, AlphaHepp;
