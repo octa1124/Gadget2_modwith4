@@ -48,7 +48,7 @@ struct coolsfr
 
   struct rate_table *RateT;      /**< tabulated rates */
   struct photo_table *PhotoTUVB; /**< photo-ionization/heating rate table for UV background*/
-  struct photo_current pc;       /**< current interpolated photo rates */
+  // struct photo_current pc;       /**< current interpolated photo rates */
 
   double Tmin;     /**< min temperature in log10 */
   double Tmax;     /**< max temperature in log10 */
@@ -58,13 +58,13 @@ struct coolsfr
 
 struct coolsfr cs;
 
-void coolsfr_init(coolsfr *self, MPI_Comm comm);
+void coolsfr_init(struct coolsfr *self, MPI_Comm comm);
 double AbundanceRatios(double u, double rho, double *ne_guess, double *nH0_pointer, double *nHeII_pointer);
 
 void InitCool(void);
 void IonizeParams(void);
 
-void cooling_only(simparticles *Sp);
+// void cooling_only(simparticles *Sp);
 
 // void sfr_create_star_particles(simparticles *Sp);
 
@@ -117,33 +117,33 @@ struct do_cool_data
   double u_old_input, rho_input, dt_input, ne_guess_input;
 };
 
-gas_state GasState;      /**< gas state */
-do_cool_data DoCoolData; /**< cooling data */
+// gas_state GasState;      /**< gas state */
+// do_cool_data DoCoolData; /**< cooling data */
 
-rate_table *RateT;      /**< tabulated rates */
-photo_table *PhotoTUVB; /**< photo-ionization/heating rate table for UV background*/
-photo_current pc;       /**< current interpolated photo rates */
+// rate_table *RateT;      /**< tabulated rates */
+// photo_table *PhotoTUVB; /**< photo-ionization/heating rate table for UV background*/
+extern struct photo_current pc;       /**< current interpolated photo rates */
 
 double Tmin = 1.0; /**< min temperature in log10 */
 double Tmax = 9.0; /**< max temperature in log10 */
 double deltaT;     /**< log10 of temperature spacing in the interpolation tables */
 int NheattabUVB;   /**< length of UVB photo table */
 
-double DoCooling(double u_old, double rho, double dt, double *ne_guess, gas_state *gs, do_cool_data *DoCool);
-double GetCoolingTime(double u_old, double rho, double *ne_guess, gas_state *gs, do_cool_data *DoCool);
-// void cool_sph_particle(simparticles *Sp, int i, gas_state *gs, do_cool_data *DoCool);
+double DoCooling(double u_old, double rho, double dt, double *ne_guess, struct gas_state *gs, struct do_cool_data *DoCool);
+double GetCoolingTime(double u_old, double rho, double *ne_guess, struct gas_state *gs, struct do_cool_data *DoCool);
+// void cool_sph_particle(simparticles *Sp, int i, struct gas_state *gs, struct do_cool_data *DoCool);
 
 void SetZeroIonization(void);
 
 void integrate_sfr(void);
 
-double CoolingRate(double logT, double rho, double *nelec, gas_state *gs, const do_cool_data *DoCool);
-double CoolingRateFromU(double u, double rho, double *ne_guess, gas_state *gs, const do_cool_data *DoCool);
-void find_abundances_and_rates(double logT, double rho, double *ne_guess, gas_state *gs, const do_cool_data *DoCool);
+double CoolingRate(double logT, double rho, double *nelec, struct gas_state *gs, const struct do_cool_data *DoCool);
+double CoolingRateFromU(double u, double rho, double *ne_guess, struct gas_state *gs, const struct do_cool_data *DoCool);
+void find_abundances_and_rates(double logT, double rho, double *ne_guess, struct gas_state *gs, const struct do_cool_data *DoCool);
 void IonizeParamsUVB(void);
 void ReadIonizeParams(char *fname);
 
-double convert_u_to_temp(double u, double rho, double *ne_guess, gas_state *gs, const do_cool_data *DoCool);
+double convert_u_to_temp(double u, double rho, double *ne_guess, struct gas_state *gs, const struct do_cool_data *DoCool);
 
 void MakeRateTable(void);
 

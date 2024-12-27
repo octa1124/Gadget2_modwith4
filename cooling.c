@@ -120,7 +120,7 @@ double DoCooling(double u_old, double rho, double dt, double *ne_guess, struct g
   return u;
 }
 
-void coolsfr_init(coolsfr *self, MPI_Comm comm)
+void coolsfr_init(struct coolsfr *self, MPI_Comm comm)
 {
   self->base.comm = comm;
 }
@@ -133,7 +133,7 @@ void coolsfr_init(coolsfr *self, MPI_Comm comm)
  *  \param rho   the proper density of the gas particle
  *  \param ne_guess electron number density relative to hydrogen number density (for molecular weight computation)
  */
-double GetCoolingTime(double u_old, double rho, double *ne_guess, struct gas_state *gs, struct do_cool_data *DoCool)
+double GetCoolingTime(double u_old, double rho, double *ne_guess, struct gas_state *gs, const struct do_cool_data *DoCool)
 {
   DoCool->u_old_input = u_old;
   DoCool->rho_input = rho;
@@ -172,7 +172,7 @@ double GetCoolingTime(double u_old, double rho, double *ne_guess, struct gas_sta
  *  \param ne_guess electron number density relative to hydrogen number density
  *  \return the gas temperature
  */
-double convert_u_to_temp(double u, double rho, double *ne_guess, struct gas_state *gs, struct do_cool_data *DoCool)
+double convert_u_to_temp(double u, double rho, double *ne_guess, struct gas_state *gs, const struct do_cool_data *DoCool)
 {
   double u_input = u;
   double rho_input = rho;
@@ -224,7 +224,7 @@ double convert_u_to_temp(double u, double rho, double *ne_guess, struct gas_stat
  *  \param rho      gas density
  *  \param ne_guess electron number density relative to hydrogen number density
  */
-void find_abundances_and_rates(double logT, double rho, double *ne_guess, struct gas_state *gs, struct do_cool_data *DoCool)
+void find_abundances_and_rates(double logT, double rho, double *ne_guess, struct gas_state *gs, const struct do_cool_data *DoCool)
 {
   double logT_input = logT;
   double rho_input = rho;
@@ -355,7 +355,7 @@ void find_abundances_and_rates(double logT, double rho, double *ne_guess, struct
  *  \param rho gas density
  *  \param ne_guess electron number density relative to hydrogen number density
  */
-double CoolingRateFromU(double u, double rho, double *ne_guess, struct gas_state *gs, struct do_cool_data *DoCool)
+double CoolingRateFromU(double u, double rho, double *ne_guess, struct gas_state *gs, const struct do_cool_data *DoCool)
 {
   double temp = convert_u_to_temp(u, rho, ne_guess, gs, DoCool);
 
@@ -398,7 +398,7 @@ double AbundanceRatios(double u, double rho, double *ne_guess, double *nH0_point
  *  \param nelec    electron number density relative to hydrogen number density
  *  \return         (heating rate-cooling rate)/n_h^2
  */
-double CoolingRate(double logT, double rho, double *nelec, gas_state *gs, const do_cool_data *DoCool)
+double CoolingRate(double logT, double rho, double *nelec, struct gas_state *gs, const struct do_cool_data *DoCool)
 {
   double Lambda, Heat;
 
@@ -634,7 +634,7 @@ void IonizeParamsUVB(void)
 
 /** \brief Reset the ionization parameters.
  */
-void SetZeroIonization(void) { memset(&pc, 0, sizeof(photo_current)); }
+void SetZeroIonization(void) { memset(&pc, 0, sizeof(struct photo_current)); }
 
 /** \brief Wrapper function to set the ionizing background.
  */
