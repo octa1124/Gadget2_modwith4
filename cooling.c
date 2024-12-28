@@ -18,8 +18,7 @@
 #include "allvars.h"
 #include "cooling.h"
 #include "proto.h"
-#include <algorithm>
-
+// #include <algorithm>
 
 /** \brief Compute the new internal energy per unit mass.
  *
@@ -42,10 +41,16 @@ double DoCooling(double u_old, double rho, double dt, double *ne_guess, struct g
   DoCool->ne_guess_input = *ne_guess;
 
   if (!gsl_finite(u_old))
-    Terminate("invalid input: u_old=%g\n", u_old);
+  {
+    printf("invalid input: u_old=%g\n", u_old);
+    endrun(1111);
+  }
 
   if (u_old < 0 || rho < 0)
-    Terminate("invalid input: u_old=%g  rho=%g  dt=%g  All.MinEgySpec=%g\n", u_old, rho, dt, All.MinEgySpec);
+  {
+    printf("invalid input: u_old=%g  rho=%g  dt=%g  All.MinEgySpec=%g\n", u_old, rho, dt, All.MinEgySpec);
+    endrun(1111);
+  }
 
   rho *= All.UnitDensity_in_cgs * All.HubbleParam * All.HubbleParam; /* convert to physical cgs units */
   u_old *= All.UnitPressure_in_cgs / All.UnitDensity_in_cgs;
@@ -110,19 +115,28 @@ double DoCooling(double u_old, double rho, double dt, double *ne_guess, struct g
   } while (fabs(du / u) > 1.0e-6 && iter < MAXITER);
 
   if (iter >= MAXITER)
-    Terminate(
+  {
+    printf(
         "failed to converge in DoCooling(): DoCool->u_old_input=%g\nDoCool->rho_input= %g\nDoCool->dt_input= "
         "%g\nDoCool->ne_guess_input= %g\n",
         DoCool->u_old_input, DoCool->rho_input, DoCool->dt_input, DoCool->ne_guess_input);
+    endrun(1111);
+  }
 
   u *= All.UnitDensity_in_cgs / All.UnitPressure_in_cgs; /* to internal units */
 
   return u;
 }
 
-void coolsfr_init(struct coolsfr *self, MPI_Comm comm)
+// void coolsfr_init(struct coolsfr self, MPI_Comm comm)
+// {
+//   self.base.comm = comm;
+// }
+
+struct coolsfr coolsfr_init(struct coolsfr self, MPI_Comm comm)
 {
-  self->base.comm = comm;
+  self.base.comm = comm;
+  return self;
 }
 
 /** \brief Return the cooling time.
@@ -133,7 +147,7 @@ void coolsfr_init(struct coolsfr *self, MPI_Comm comm)
  *  \param rho   the proper density of the gas particle
  *  \param ne_guess electron number density relative to hydrogen number density (for molecular weight computation)
  */
-double GetCoolingTime(double u_old, double rho, double *ne_guess, struct gas_state *gs, const struct do_cool_data *DoCool)
+double GetCoolingTime(double u_old, double rho, double *ne_guess, struct gas_state *gs, struct do_cool_data *DoCool)
 {
   DoCool->u_old_input = u_old;
   DoCool->rho_input = rho;
@@ -195,7 +209,8 @@ double convert_u_to_temp(double u, double rho, double *ne_guess, struct gas_stat
 
     double temp_new = GAMMA_MINUS1 / BOLTZMANN * u * PROTONMASS * mu;
 
-    max = std::max<double>(max, temp_new / (1 + gs->yhelium + *ne_guess) * fabs((*ne_guess - ne_old) / (temp_new - temp_old + 1.0)));
+    // max = std::max<double>(max, temp_new / (1 + gs->yhelium + *ne_guess) * fabs((*ne_guess - ne_old) / (temp_new - temp_old + 1.0)));
+    max = (max > temp_new / (1 + gs->yhelium + *ne_guess) * fabs((*ne_guess - ne_old) / (temp_new - temp_old + 1.0))) ? max : temp_new / (1 + gs->yhelium + *ne_guess) * fabs((*ne_guess - ne_old) / (temp_new - temp_old + 1.0));
 
     temp = temp_old + (temp_new - temp_old) / (1 + max);
     iter++;
@@ -210,7 +225,8 @@ double convert_u_to_temp(double u, double rho, double *ne_guess, struct gas_stat
     printf("u_input= %g\nrho_input=%g\n ne_input=%g\n", u_input, rho_input, ne_input);
     printf("DoCool->u_old_input=%g\nDoCool->rho_input= %g\nDoCool->dt_input= %g\nDoCool->ne_guess_input= %g\n", DoCool->u_old_input,
            DoCool->rho_input, DoCool->dt_input, DoCool->ne_guess_input);
-    Terminate("convergence failure");
+    printf("convergence failure");
+    endrun(1111);
   }
 
   return temp;
@@ -231,7 +247,10 @@ void find_abundances_and_rates(double logT, double rho, double *ne_guess, struct
   double ne_input = *ne_guess;
 
   if (!gsl_finite(logT))
-    Terminate("logT=%g\n", logT);
+  {
+    printf("logT=%g\n", logT);
+    endrun(1111);
+  }
 
   if (logT <= Tmin) /* everything neutral */
   {
@@ -277,13 +296,13 @@ void find_abundances_and_rates(double logT, double rho, double *ne_guess, struct
   {
     niter++;
 
-    gs->aHp = flow * RateT[j].AlphaHp + fhi * RateT[j + 1].AlphaHp;
-    gs->aHep = flow * RateT[j].AlphaHep + fhi * RateT[j + 1].AlphaHep;
-    gs->aHepp = flow * RateT[j].AlphaHepp + fhi * RateT[j + 1].AlphaHepp;
-    gs->ad = flow * RateT[j].Alphad + fhi * RateT[j + 1].Alphad;
-    gs->geH0 = flow * RateT[j].GammaeH0 + fhi * RateT[j + 1].GammaeH0;
-    gs->geHe0 = flow * RateT[j].GammaeHe0 + fhi * RateT[j + 1].GammaeHe0;
-    gs->geHep = flow * RateT[j].GammaeHep + fhi * RateT[j + 1].GammaeHep;
+    gs->aHp = flow * cs.RateT[j].AlphaHp + fhi * cs.RateT[j + 1].AlphaHp;
+    gs->aHep = flow * cs.RateT[j].AlphaHep + fhi * cs.RateT[j + 1].AlphaHep;
+    gs->aHepp = flow * cs.RateT[j].AlphaHepp + fhi * cs.RateT[j + 1].AlphaHepp;
+    gs->ad = flow * cs.RateT[j].Alphad + fhi * cs.RateT[j + 1].Alphad;
+    gs->geH0 = flow * cs.RateT[j].GammaeH0 + fhi * cs.RateT[j + 1].GammaeH0;
+    gs->geHe0 = flow * cs.RateT[j].GammaeHe0 + fhi * cs.RateT[j + 1].GammaeHe0;
+    gs->geHep = flow * cs.RateT[j].GammaeHep + fhi * cs.RateT[j + 1].GammaeHep;
 
     if (gs->necgs <= 1.e-25 || pc.J_UV == 0)
     {
@@ -329,18 +348,24 @@ void find_abundances_and_rates(double logT, double rho, double *ne_guess, struct
       break;
 
     if (niter > (MAXITER - 10))
+    {
       printf("ne= %g  niter=%d\n", gs->ne, niter);
+      endrun(1111);
+    }
   } while (niter < MAXITER);
 
   if (niter >= MAXITER)
-    Terminate(
+  {
+    printf(
         "no convergence reached in find_abundances_and_rates(): logT_input= %g  rho_input= %g  ne_input= %g "
         "DoCool->u_old_input=%g\nDoCool->rho_input= %g\nDoCool->dt_input= %g\nDoCool->ne_guess_input= %g\n",
         logT_input, rho_input, ne_input, DoCool->u_old_input, DoCool->rho_input, DoCool->dt_input, DoCool->ne_guess_input);
+    endrun(1111);
+  }
 
-  gs->bH0 = flow * RateT[j].BetaH0 + fhi * RateT[j + 1].BetaH0;
-  gs->bHep = flow * RateT[j].BetaHep + fhi * RateT[j + 1].BetaHep;
-  gs->bff = flow * RateT[j].Betaff + fhi * RateT[j + 1].Betaff;
+  gs->bH0 = flow * cs.RateT[j].BetaH0 + fhi * cs.RateT[j + 1].BetaH0;
+  gs->bHep = flow * cs.RateT[j].BetaHep + fhi * cs.RateT[j + 1].BetaHep;
+  gs->bff = flow * cs.RateT[j].Betaff + fhi * cs.RateT[j + 1].Betaff;
 
   *ne_guess = gs->ne;
 }
@@ -478,17 +503,17 @@ double CoolingRate(double logT, double rho, double *nelec, struct gas_state *gs,
  */
 void MakeRateTable(void)
 {
-  GasState.yhelium = (1 - GasState.XH) / (4 * GasState.XH);
-  GasState.mhboltz = PROTONMASS / BOLTZMANN;
+  cs.GasState.yhelium = (1 - cs.GasState.XH) / (4 * cs.GasState.XH);
+  cs.GasState.mhboltz = PROTONMASS / BOLTZMANN;
 
   deltaT = (Tmax - Tmin) / NCOOLTAB;
-  GasState.ethmin = pow(10.0, Tmin) * (1. + GasState.yhelium) / ((1. + 4. * GasState.yhelium) * GasState.mhboltz * GAMMA_MINUS1);
+  cs.GasState.ethmin = pow(10.0, Tmin) * (1. + cs.GasState.yhelium) / ((1. + 4. * cs.GasState.yhelium) * cs.GasState.mhboltz * GAMMA_MINUS1);
   /* minimum internal energy for neutral gas */
 
   for (int i = 0; i <= NCOOLTAB; i++)
   {
-    RateT[i].BetaH0 = RateT[i].BetaHep = RateT[i].Betaff = RateT[i].AlphaHp = RateT[i].AlphaHep = RateT[i].AlphaHepp =
-        RateT[i].Alphad = RateT[i].GammaeH0 = RateT[i].GammaeHe0 = RateT[i].GammaeHep = 0;
+    cs.RateT[i].BetaH0 = cs.RateT[i].BetaHep = cs.RateT[i].Betaff = cs.RateT[i].AlphaHp = cs.RateT[i].AlphaHep = cs.RateT[i].AlphaHepp =
+        cs.RateT[i].Alphad = cs.RateT[i].GammaeH0 = cs.RateT[i].GammaeHe0 = cs.RateT[i].GammaeHep = 0;
 
     double T = pow(10.0, Tmin + deltaT * i);
     double Tfact = 1.0 / (1 + sqrt(T / 1.0e5));
@@ -496,38 +521,38 @@ void MakeRateTable(void)
     /* collisional excitation */
     /* Cen 1992 */
     if (118348 / T < 70)
-      RateT[i].BetaH0 = 7.5e-19 * exp(-118348 / T) * Tfact;
+      cs.RateT[i].BetaH0 = 7.5e-19 * exp(-118348 / T) * Tfact;
     if (473638 / T < 70)
-      RateT[i].BetaHep = 5.54e-17 * pow(T, -0.397) * exp(-473638 / T) * Tfact;
+      cs.RateT[i].BetaHep = 5.54e-17 * pow(T, -0.397) * exp(-473638 / T) * Tfact;
 
     /* free-free */
-    RateT[i].Betaff = 1.43e-27 * sqrt(T) * (1.1 + 0.34 * exp(-(5.5 - log10(T)) * (5.5 - log10(T)) / 3));
+    cs.RateT[i].Betaff = 1.43e-27 * sqrt(T) * (1.1 + 0.34 * exp(-(5.5 - log10(T)) * (5.5 - log10(T)) / 3));
 
     /* recombination */
 
     /* Cen 1992 */
     /* Hydrogen II */
-    RateT[i].AlphaHp = 8.4e-11 * pow(T / 1000, -0.2) / (1. + pow(T / 1.0e6, 0.7)) / sqrt(T);
+    cs.RateT[i].AlphaHp = 8.4e-11 * pow(T / 1000, -0.2) / (1. + pow(T / 1.0e6, 0.7)) / sqrt(T);
     /* Helium II */
-    RateT[i].AlphaHep = 1.5e-10 * pow(T, -0.6353);
+    cs.RateT[i].AlphaHep = 1.5e-10 * pow(T, -0.6353);
     /* Helium III */
-    RateT[i].AlphaHepp = 4. * RateT[i].AlphaHp;
+    cs.RateT[i].AlphaHepp = 4. * cs.RateT[i].AlphaHp;
     /* Cen 1992 */
     /* dielectric recombination */
     if (470000 / T < 70)
-      RateT[i].Alphad = 1.9e-3 * pow(T, -1.5) * exp(-470000 / T) * (1. + 0.3 * exp(-94000 / T));
+      cs.RateT[i].Alphad = 1.9e-3 * pow(T, -1.5) * exp(-470000 / T) * (1. + 0.3 * exp(-94000 / T));
 
     /* collisional ionization */
     /* Cen 1992 */
     /* Hydrogen */
     if (157809.1 / T < 70)
-      RateT[i].GammaeH0 = 5.85e-11 * sqrt(T) * exp(-157809.1 / T) * Tfact;
+      cs.RateT[i].GammaeH0 = 5.85e-11 * sqrt(T) * exp(-157809.1 / T) * Tfact;
     /* Helium */
     if (285335.4 / T < 70)
-      RateT[i].GammaeHe0 = 2.38e-11 * sqrt(T) * exp(-285335.4 / T) * Tfact;
+      cs.RateT[i].GammaeHe0 = 2.38e-11 * sqrt(T) * exp(-285335.4 / T) * Tfact;
     /* Hellium II */
     if (631515.0 / T < 70)
-      RateT[i].GammaeHep = 5.68e-12 * sqrt(T) * exp(-631515.0 / T) * Tfact;
+      cs.RateT[i].GammaeHep = 5.68e-12 * sqrt(T) * exp(-631515.0 / T) * Tfact;
   }
 }
 
@@ -543,32 +568,38 @@ void ReadIonizeParams(char *fname)
   {
     FILE *fdcool;
     if (!(fdcool = fopen(fname, "r")))
-      Terminate(" Cannot read ionization table in file `%s'\n", fname);
+    {
+      printf(" Cannot read ionization table in file `%s'\n", fname);
+      endrun(1111);
+    }
     if (iter == 0)
       while (fscanf(fdcool, "%*g %*g %*g %*g %*g %*g %*g") != EOF)
         NheattabUVB++;
     if (iter == 1)
-      while (fscanf(fdcool, "%g %g %g %g %g %g %g", &PhotoTUVB[i].variable, &PhotoTUVB[i].gH0, &PhotoTUVB[i].gHe, &PhotoTUVB[i].gHep,
-                    &PhotoTUVB[i].eH0, &PhotoTUVB[i].eHe, &PhotoTUVB[i].eHep) != EOF)
+      while (fscanf(fdcool, "%g %g %g %g %g %g %g", &cs.PhotoTUVB[i].variable, &cs.PhotoTUVB[i].gH0, &cs.PhotoTUVB[i].gHe, &cs.PhotoTUVB[i].gHep,
+                    &cs.PhotoTUVB[i].eH0, &cs.PhotoTUVB[i].eHe, &cs.PhotoTUVB[i].eHep) != EOF)
         i++;
     fclose(fdcool);
 
     if (iter == 0)
     {
-      PhotoTUVB = (photo_table *)Mem.mymalloc("PhotoT", NheattabUVB * sizeof(photo_table));
-      mpi_printf("COOLING: read ionization table with %d entries in file `%s'.\n", NheattabUVB, fname);
+      cs.PhotoTUVB = (struct photo_table *)malloc(NheattabUVB * sizeof(struct photo_table));
+      // mpi_printf("COOLING: read ionization table with %d entries in file `%s'.\n", NheattabUVB, fname);
     }
   }
   /* ignore zeros at end of treecool file */
   for (i = 0; i < NheattabUVB; ++i)
-    if (PhotoTUVB[i].gH0 == 0.0)
+    if (cs.PhotoTUVB[i].gH0 == 0.0)
       break;
 
   NheattabUVB = i;
-  mpi_printf("COOLING: using %d ionization table entries from file `%s'.\n", NheattabUVB, fname);
+  // mpi_printf("COOLING: using %d ionization table entries from file `%s'.\n", NheattabUVB, fname);
 
   if (NheattabUVB < 1)
-    Terminate("The length of the cooling table has to have at least one entry");
+  {
+    printf("The length of the cooling table has to have at least one entry");
+    endrun(1111);
+  }
 }
 
 /** \brief Set the ionization parameters for the UV background.
@@ -585,12 +616,12 @@ void IonizeParamsUVB(void)
   {
     /* treat the one value given as constant with redshift */
     pc.J_UV = 1;
-    pc.gJH0 = PhotoTUVB[0].gH0;
-    pc.gJHe0 = PhotoTUVB[0].gHe;
-    pc.gJHep = PhotoTUVB[0].gHep;
-    pc.epsH0 = PhotoTUVB[0].eH0;
-    pc.epsHe0 = PhotoTUVB[0].eHe;
-    pc.epsHep = PhotoTUVB[0].eHep;
+    pc.gJH0 = cs.PhotoTUVB[0].gH0;
+    pc.gJHe0 = cs.PhotoTUVB[0].gHe;
+    pc.gJHep = cs.PhotoTUVB[0].gHep;
+    pc.epsH0 = cs.PhotoTUVB[0].eH0;
+    pc.epsHe0 = cs.PhotoTUVB[0].eHe;
+    pc.epsHep = cs.PhotoTUVB[0].eHep;
   }
   else
   {
@@ -599,34 +630,34 @@ void IonizeParamsUVB(void)
     int ilow = 0;
     for (int i = 0; i < NheattabUVB; i++)
     {
-      if (PhotoTUVB[i].variable < logz)
+      if (cs.PhotoTUVB[i].variable < logz)
         ilow = i;
       else
         break;
     }
 
-    if (logz > PhotoTUVB[NheattabUVB - 1].variable || ilow >= NheattabUVB - 1)
+    if (logz > cs.PhotoTUVB[NheattabUVB - 1].variable || ilow >= NheattabUVB - 1)
     {
       SetZeroIonization();
     }
     else
     {
-      double dzlow = logz - PhotoTUVB[ilow].variable;
-      double dzhi = PhotoTUVB[ilow + 1].variable - logz;
+      double dzlow = logz - cs.PhotoTUVB[ilow].variable;
+      double dzhi = cs.PhotoTUVB[ilow + 1].variable - logz;
 
-      if (PhotoTUVB[ilow].gH0 == 0 || PhotoTUVB[ilow + 1].gH0 == 0)
+      if (cs.PhotoTUVB[ilow].gH0 == 0 || cs.PhotoTUVB[ilow + 1].gH0 == 0)
       {
         SetZeroIonization();
       }
       else
       {
         pc.J_UV = 1;
-        pc.gJH0 = pow(10., (dzhi * log10(PhotoTUVB[ilow].gH0) + dzlow * log10(PhotoTUVB[ilow + 1].gH0)) / (dzlow + dzhi));
-        pc.gJHe0 = pow(10., (dzhi * log10(PhotoTUVB[ilow].gHe) + dzlow * log10(PhotoTUVB[ilow + 1].gHe)) / (dzlow + dzhi));
-        pc.gJHep = pow(10., (dzhi * log10(PhotoTUVB[ilow].gHep) + dzlow * log10(PhotoTUVB[ilow + 1].gHep)) / (dzlow + dzhi));
-        pc.epsH0 = pow(10., (dzhi * log10(PhotoTUVB[ilow].eH0) + dzlow * log10(PhotoTUVB[ilow + 1].eH0)) / (dzlow + dzhi));
-        pc.epsHe0 = pow(10., (dzhi * log10(PhotoTUVB[ilow].eHe) + dzlow * log10(PhotoTUVB[ilow + 1].eHe)) / (dzlow + dzhi));
-        pc.epsHep = pow(10., (dzhi * log10(PhotoTUVB[ilow].eHep) + dzlow * log10(PhotoTUVB[ilow + 1].eHep)) / (dzlow + dzhi));
+        pc.gJH0 = pow(10., (dzhi * log10(cs.PhotoTUVB[ilow].gH0) + dzlow * log10(cs.PhotoTUVB[ilow + 1].gH0)) / (dzlow + dzhi));
+        pc.gJHe0 = pow(10., (dzhi * log10(cs.PhotoTUVB[ilow].gHe) + dzlow * log10(cs.PhotoTUVB[ilow + 1].gHe)) / (dzlow + dzhi));
+        pc.gJHep = pow(10., (dzhi * log10(cs.PhotoTUVB[ilow].gHep) + dzlow * log10(cs.PhotoTUVB[ilow + 1].gHep)) / (dzlow + dzhi));
+        pc.epsH0 = pow(10., (dzhi * log10(cs.PhotoTUVB[ilow].eH0) + dzlow * log10(cs.PhotoTUVB[ilow + 1].eH0)) / (dzlow + dzhi));
+        pc.epsHe0 = pow(10., (dzhi * log10(cs.PhotoTUVB[ilow].eHe) + dzlow * log10(cs.PhotoTUVB[ilow + 1].eHe)) / (dzlow + dzhi));
+        pc.epsHep = pow(10., (dzhi * log10(cs.PhotoTUVB[ilow].eHep) + dzlow * log10(cs.PhotoTUVB[ilow + 1].eHep)) / (dzlow + dzhi));
       }
     }
   }
@@ -649,25 +680,33 @@ void IonizeParams(void) { IonizeParamsUVB(); }
 void InitCool(void)
 {
   MPI_Comm comm = MPI_COMM_WORLD;
-  coolsfr_init(*cs, MPI_Comm comm)
+  // coolsfr_init(cs, comm);
+  cs = coolsfr_init(cs, comm);
 
   /* set default hydrogen mass fraction */
-  GasState.XH = HYDROGEN_MASSFRAC;
+  cs.GasState.XH = HYDROGEN_MASSFRAC;
 
   /* zero photo-ionization/heating rates */
   SetZeroIonization();
 
   /* allocate and construct rate table */
   // RateT = (rate_table *)Mem.mymalloc("RateT", (NCOOLTAB + 1) * sizeof(rate_table));
-  cs->RateT = (struct rate_table *)Mem.mymalloc("RateT", (NCOOLTAB + 1) * sizeof(struct rate_table));
-  ;
+  // cs.RateT = (struct rate_table *)malloc("RateT", (NCOOLTAB + 1) * sizeof(struct rate_table));
+  cs.RateT = (struct rate_table *)malloc((NCOOLTAB + 1) * sizeof(struct rate_table));
+
+  if (cs.RateT == NULL)
+  {
+    // 如果 malloc 失败，输出错误信息并退出
+    fprintf(stderr, "Memory allocation failed\n");
+    exit(EXIT_FAILURE);
+  };
   MakeRateTable();
 
   /* read photo tables */
-  ReadIonizeParams(All.TreecoolFile);
+  ReadIonizeParams("TREECOOL");
 
   All.Time = All.TimeBegin;
-  All.set_cosmo_factors_for_current_time();
+  set_cosmo_factors_for_current_time();
 
   IonizeParams();
 }
@@ -723,7 +762,7 @@ void InitCool(void)
   Sp->SphP[i].Ne = ne;
 
   if(unew < 0)
-    Terminate("invalid temperature: i=%d unew=%g\n", i, unew);
+    printf("invalid temperature: i=%d unew=%g\n", i, unew);
 
   double du = unew - utherm;
 

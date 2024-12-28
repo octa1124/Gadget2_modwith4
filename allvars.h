@@ -515,6 +515,7 @@ extern struct sph_particle_data
   FLOAT Rot[3];             /*!< local velocity curl */
   FLOAT DhsmlDensityFactor; /*!< correction factor needed in the equation of motion of the conservative entropy formulation of SPH */
   FLOAT MaxSignalVel;       /*!< maximum "signal velocity" occuring for this particle */
+  char TreecoolFile[255];
 }
     *SphP,         /*!< holds SPH particle data on local processor */
     *DomainSphBuf; /*!< buffer for SPH particle data in domain decomposition */

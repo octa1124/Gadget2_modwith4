@@ -38,7 +38,8 @@ void endrun(int ierr)
 #endif
       exit(0);
     }
-    free(*RateT);
+    free(cs.RateT);
+    free(cs.PhotoTUVB);
 
   MPI_Finalize();
   exit(0);

@@ -819,6 +819,8 @@ void set_cosmo_factors_for_current_time(void)
 {
   if (All.ComovingIntegrationOn)
   {
+    double e_of_a;
+    e_of_a = sqrt(All.Omega0 / pow(All.Time, 3) + (1 - All.Omega0 - All.OmegaLambda) / pow(All.Time, 2) + All.OmegaLambda);
     All.cf_atime = All.Time;
     All.cf_atime2 = All.Time * All.Time;
     All.cf_ainv = 1 / All.Time;
@@ -827,7 +829,7 @@ void set_cosmo_factors_for_current_time(void)
     All.cf_afac1 = pow(All.Time, 3 * GAMMA_MINUS1);
     All.cf_afac2 = 1 / pow(All.Time, 3 * GAMMA - 2);
     All.cf_afac3 = pow(All.Time, 3 * (1 - GAMMA) / 2.0);
-    All.cf_hubble_a = All.cf_H = Driftfac.hubble_function(All.Time);
+    All.cf_hubble_a = All.cf_H = All.Time * e_of_a;
     All.cf_atime_hubble_a = All.Time * All.cf_hubble_a;
     All.cf_atime2_hubble_a = All.Time * All.Time * All.cf_hubble_a;
     All.cf_redshift = 1 / All.Time - 1;

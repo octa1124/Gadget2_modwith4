@@ -535,7 +535,7 @@ void hydro_evaluate(int target, int mode)
 	struct do_cool_data *DoCool = &cs.DoCoolData;
 	double u_true = ((All.MinEgySpec > U_in) ? All.MinEgySpec : U_in);
 	double unew = DoCooling(u_true, rho * All.cf_a3inv, dtime, &ne, gs, DoCool);
-	dudt_cool = (((All.MinEgySpec > unew) ? All.MinEgySpec : unew) - U_in) * P[target].Mass() / dtime;
+	dudt_cool = (((All.MinEgySpec > unew) ? All.MinEgySpec : unew) - U_in) * P[target].Mass / dtime;
 	if (dudt_cool < 0)
 	{
 		dudt_cool = 0;
