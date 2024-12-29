@@ -108,8 +108,8 @@ struct do_cool_data
 // photo_table *PhotoTUVB; /**< photo-ionization/heating rate table for UV background*/
 extern struct photo_current pc;       /**< current interpolated photo rates */
 
-double Tmin = 1.0; /**< min temperature in log10 */
-double Tmax = 9.0; /**< max temperature in log10 */
+extern double Tmin; /**< min temperature in log10 */
+extern double Tmax; /**< max temperature in log10 */
 double deltaT;     /**< log10 of temperature spacing in the interpolation tables */
 int NheattabUVB;   /**< length of UVB photo table */
 
@@ -131,7 +131,7 @@ double convert_u_to_temp(double u, double rho, double *ne_guess, struct gas_stat
 
 void MakeRateTable(void);
 
-const int WriteMiscFiles = 1;
+// const int WriteMiscFiles = 1;
 
 // void make_star(simparticles *Sp, int i, double prob, MyDouble mass_of_star, double *sum_mass_stars);
 // void spawn_star_from_sph_particle(simparticles *Sp, int igas, double birthtime, int istar, MyDouble mass_of_star);
@@ -143,7 +143,7 @@ int stars_converted;         /**< local number of gas cells converted into stars
 int tot_stars_converted;     /**< global number of gas cells converted into stars in the time step */
 int altogether_spawned;      /**< local number of star+wind particles spawned in the time step */
 int tot_altogether_spawned;  /**< global number of star+wind particles spawned in the time step */
-double cum_mass_stars = 0.0; /**< cumulative mass of stars created in the time step (global value) */
+// double cum_mass_stars = 0.0; /**< cumulative mass of stars created in the time step (global value) */
 
 
 struct coolsfr
@@ -156,10 +156,10 @@ struct coolsfr
   struct photo_table *PhotoTUVB; /**< photo-ionization/heating rate table for UV background*/
   // struct photo_current pc;       /**< current interpolated photo rates */
 
-  double Tmin;     /**< min temperature in log10 */
-  double Tmax;     /**< max temperature in log10 */
-  double deltaT;   /**< log10 of temperature spacing in the interpolation tables */
-  int NheattabUVB; /**< length of UVB photo table */
+  // double Tmin;     /**< min temperature in log10 */
+  // double Tmax;     /**< max temperature in log10 */
+  // double deltaT;   /**< log10 of temperature spacing in the interpolation tables */
+  // int NheattabUVB; /**< length of UVB photo table */
 };
 
 struct coolsfr cs;

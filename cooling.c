@@ -19,6 +19,9 @@
 #include "cooling.h"
 #include "proto.h"
 // #include <algorithm>
+struct photo_current pc;
+double Tmin = 1.0;
+double Tmax = 9.0;
 
 /** \brief Compute the new internal energy per unit mass.
  *
