@@ -1,2 +1,5 @@
 GadgetCDM
 *.o
+*.so
+*.a
+*.aux
